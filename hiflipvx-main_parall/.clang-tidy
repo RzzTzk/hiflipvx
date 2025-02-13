@@ -1,0 +1,21 @@
+Checks:     'cppcore*,
+            bugprone*,
+            clang-analyzer*,
+            cert*,
+            modernize*,
+            performance*,
+            readablity*,
+            -cppcoreguidelines-avoid-magic-numbers,
+            -bugprone-easily-swappable-parameters'
+FormatStyle:     file
+HeaderFilterRegex: 'hiflipvx*'
+CheckOptions:
+      - key:     readability-implicit-bool-conversion.AllowIntegerConditions
+        value:   '1'
+WarningsAsErrors:   'cppcore*,
+                    bugprone*,
+                    clang-analyzer*,
+                    cert*,
+                    modernize*,
+                    performance*,
+                    readablity*'

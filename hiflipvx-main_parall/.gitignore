@@ -1,0 +1,56 @@
+out/
+
+# Prerequisites
+*.d
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+# Precompiled Headers
+*.gch
+*.pch
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+# Fortran module files
+*.mod
+*.smod
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+# Executables
+*.exe
+*.out
+*.app
+
+# Visual Studio
+**/.vs/
+**/x64/
+*.log
+*.tlog
+*.pdb
+*.user
+*.ipdb
+*.txt
+*.sln
+*.suo
+*.lock
+*.vsidx
+*.db
+*.db-shm
+*.db-wal
+*.opendb
+*.ipch
+*.vcxproj
+*.filters
+*.recipe
+*.iobj
+!CMakeLists.txt
+.vscode
+
+# idea
+.idea/
