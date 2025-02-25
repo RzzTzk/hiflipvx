@@ -112,7 +112,7 @@ using param_reorder_n = hvx::convert::ReorderParam <
  auto
  TestHw(param_super::src_port* src, param_super::wgts_port* wgts, param_super::bias_port* bias, param_super::dst_port*dst) noexcept -> void {
     HVX_INTERFACE_STREAM_NO_CTRL_TLP(src, wgts, bias, dst);
-    auto dst_fifo = hvx::HwFifo<param_super::dst_vec, param_super::dst_dim::vec_elms, 2>();
+    // auto dst_fifo = hvx::HwFifo<param_super::dst_vec, param_super::dst_dim::vec_elms, 2>();
     HVX_DATAPACK_TOP(src, bias, dst); // wgts,
     hvx::nn::SuperTop<param_super,true, hvx::util::pooling_e::kAvg, hvx::util::layer_e::Depthwise>(src, wgts, bias, dst);
  }

@@ -511,17 +511,18 @@ HwSplit(typename param_::vec* src,
 }
 
 /******************************************************************************************************************************************/
-
-/*!
- * @brief FiFo to be played between two layers
- */
-template<typename type_, int64_t original_buf_size_, int64_t fifo_size_>
-HVX_FORCE_INLINE auto
-HwFifo() noexcept -> hvx::util::array1d<type_, original_buf_size_> {
-    HVX_INLINE_TOP();
-    return hvx::convert::StreamFifo<type_, original_buf_size_, fifo_size_>();
-}
 //xwq
+// /*!
+//  * @brief FiFo to be played between two layers
+//  */
+// template<typename type_, int64_t original_buf_size_, int64_t fifo_size_>
+// HVX_FORCE_INLINE auto
+// HwFifo() noexcept -> hvx::util::array1d<type_, original_buf_size_> {
+//     HVX_INLINE_TOP();
+//     return hvx::convert::StreamFifo<type_, original_buf_size_, fifo_size_>();
+// }
+
+
 // /*!
 //  * @brief Converts from HLS stream to HVX type
 //  */
@@ -532,35 +533,35 @@ HwFifo() noexcept -> hvx::util::array1d<type_, original_buf_size_> {
 //     hvx::convert::StreamToHvx<typename param_::vec, typename param_::dim, param_::flags>(src, dst);
 // }
 
-/*!
- * @brief Converts from HVX to HLS-stream type
- */
-template<typename param_>
-HVX_FORCE_INLINE auto
-HwHvxToStream(typename param_::vec* src, typename param_::port& dst) noexcept -> void {
-    HVX_DATAPACK_TOP(src, dst);
-    hvx::convert::HvxToStream<typename param_::vec, typename param_::dim, param_::flags>(src, dst);
-}
+// /*!
+//  * @brief Converts from HVX to HLS-stream type
+//  */
+// template<typename param_>
+// HVX_FORCE_INLINE auto
+// HwHvxToStream(typename param_::vec* src, typename param_::port& dst) noexcept -> void {
+//     HVX_DATAPACK_TOP(src, dst);
+//     hvx::convert::HvxToStream<typename param_::vec, typename param_::dim, param_::flags>(src, dst);
+// }
 
-/*!
- * @brief Sends the elements from src array to the output (for testbenches)
- */
-template<typename type_, int64_t latency_, int64_t delay_, int64_t vec_elms_>
-HVX_FORCE_INLINE auto
-HwSrcGenerator(type_* src, type_* dst) noexcept -> void {
-    HVX_INLINE_TOP();
-    hvx::convert::SrcGenerator<type_, latency_, delay_, vec_elms_>(src, dst);
-}
+// /*!
+//  * @brief Sends the elements from src array to the output (for testbenches)
+//  */
+// template<typename type_, int64_t latency_, int64_t delay_, int64_t vec_elms_>
+// HVX_FORCE_INLINE auto
+// HwSrcGenerator(type_* src, type_* dst) noexcept -> void {
+//     HVX_INLINE_TOP();
+//     hvx::convert::SrcGenerator<type_, latency_, delay_, vec_elms_>(src, dst);
+// }
 
-/*!
- * @brief Sends random elements to the output (for testbenches)
- */
-template<typename type_, int64_t latency_, int64_t delay_, int64_t vec_elms_>
-HVX_FORCE_INLINE auto
-HwSrcGenerator(type_* dst) noexcept -> void {
-    HVX_INLINE_TOP();
-    hvx::convert::SrcGenerator<type_, latency_, delay_, vec_elms_>(dst);
-}
+// /*!
+//  * @brief Sends random elements to the output (for testbenches)
+//  */
+// template<typename type_, int64_t latency_, int64_t delay_, int64_t vec_elms_>
+// HVX_FORCE_INLINE auto
+// HwSrcGenerator(type_* dst) noexcept -> void {
+//     HVX_INLINE_TOP();
+//     hvx::convert::SrcGenerator<type_, latency_, delay_, vec_elms_>(dst);
+// }
 
 /******************************************************************************************************************************************/
 
