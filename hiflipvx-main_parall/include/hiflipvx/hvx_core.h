@@ -521,16 +521,16 @@ HwFifo() noexcept -> hvx::util::array1d<type_, original_buf_size_> {
     HVX_INLINE_TOP();
     return hvx::convert::StreamFifo<type_, original_buf_size_, fifo_size_>();
 }
-
-/*!
- * @brief Converts from HLS stream to HVX type
- */
-template<typename param_>
-HVX_FORCE_INLINE auto
-HwStreamToHvx(typename param_::port& src, typename param_::vec* dst) {
-    HVX_DATAPACK_TOP(src, dst);
-    hvx::convert::StreamToHvx<typename param_::vec, typename param_::dim, param_::flags>(src, dst);
-}
+//xwq
+// /*!
+//  * @brief Converts from HLS stream to HVX type
+//  */
+// template<typename param_>
+// HVX_FORCE_INLINE auto
+// HwStreamToHvx(typename param_::port& src, typename param_::vec* dst) {
+//     HVX_DATAPACK_TOP(src, dst);
+//     hvx::convert::StreamToHvx<typename param_::vec, typename param_::dim, param_::flags>(src, dst);
+// }
 
 /*!
  * @brief Converts from HVX to HLS-stream type

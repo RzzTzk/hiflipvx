@@ -29,7 +29,7 @@
 #include "convert/hvx_convert_multicast.h"
 #include "convert/hvx_convert_reshape.h"
 #include "convert/hvx_convert_split.h"
-#include "convert/hvx_convert_stream.h"
+// #include "convert/hvx_convert_stream.h"
 #include "convert/hvx_convert_transpose.h"
 #include "nn/hvx_nn_conv.h"
 #include "nn/hvx_nn_dense.h"
@@ -98,12 +98,12 @@ template<int64_t dim_num_ = 1,
 using tensor_param = hvx::util::TensorParam<dim_num_, dim0_, dim1_, dim2_, dim3_, dim4_, dim5_>;
 
 /******************************************************************************************************************************************/
-
-/*!
- * @brief This class is needed for the HVX <-> Stream conversion functions (for side channels)
- */
-template<typename type_, typename dim_, int64_t flags_>
-using stream_param = hvx::convert::StreamParam<type_, dim_, flags_>;
+//xwq
+// /*!
+//  * @brief This class is needed for the HVX <-> Stream conversion functions (for side channels)
+//  */
+// template<typename type_, typename dim_, int64_t flags_>
+// using stream_param = hvx::convert::StreamParam<type_, dim_, flags_>;
 
 /*!
  * @brief All compile time parameters and checks for the concat function

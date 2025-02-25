@@ -104,34 +104,33 @@ using param_reorder_n = hvx::convert::ReorderParam <
 
 //using stream = hvx::stream_param<typename param_super::dst_type, typename param_super::dst_dim, hvx::axis_e::kEof>;
  
-using stream = hvx::stream_param<typename param_reorder_n::dst_type, typename param_reorder_n::dst_dim, hvx::axis_e::kEof>;
+// using stream = hvx::stream_param<typename param_reorder_n::dst_type, typename param_reorder_n::dst_dim, hvx::axis_e::kEof>;
 
 // HW accelerator
 
 
- //auto
- //TestHw(param_super::src_port* src, param_super::wgts_port* wgts, param_super::bias_port* bias, stream::port* dst) noexcept -> void {
- //    HVX_INTERFACE_STREAM_NO_CTRL_TLP(src, wgts, bias, dst);
- //    auto dst_fifo = hvx::HwFifo<param_super::dst_vec, param_super::dst_dim::vec_elms, 2>();
- //    HVX_DATAPACK_TOP(src, bias, dst); // wgts,
- //    hvx::nn::SuperTop<param_super,true, hvx::util::pooling_e::kAvg, hvx::util::layer_e::Conv>(src, wgts, bias, dst_fifo.data);
- //    hvx::HwHvxToStream<stream>(dst_fifo.data, *dst);
- //}
-
-
  auto
- TestHw(param_super::src_port* src, param_super::wgts_port* wgts, param_super::bias_port* bias, stream::port* dst) noexcept -> void {
-     HVX_INTERFACE_STREAM_NO_CTRL_TLP(src, wgts, bias, dst);
-     auto super_fifo = hvx::HwFifo<param_super::dst_vec, param_super::dst_dim::vec_elms, 2>(); 
-    /* auto dst_fifo   = hvx::HwFifo<param_reorder_n::dst_vec, param_reorder_n::dst_dim::vec_elms, 2>();*/
-     HVX_DATAPACK_TOP(src, bias, dst); // wgts,
-     hvx::nn::SuperTop<param_super, true, hvx::util::pooling_e::kAvg, hvx::util::layer_e::Depthwise>(src, wgts, bias, super_fifo.data);
-     hvx::convert::HwReorderTop<param_reorder_n, hvx::util::reorder_e::Negative>(super_fifo.data, dst);
-     //hvx::convert::HwReorderTop<param_reorder_n, hvx::util::reorder_e::Negative>(super_fifo.data, dst_fifo.data);
-     //hvx::HwHvxToStream<stream>(dst_fifo.data, *dst);
+ TestHw(param_super::src_port* src, param_super::wgts_port* wgts, param_super::bias_port* bias, param_super::dst_port*dst) noexcept -> void {
+    HVX_INTERFACE_STREAM_NO_CTRL_TLP(src, wgts, bias, dst);
+    auto dst_fifo = hvx::HwFifo<param_super::dst_vec, param_super::dst_dim::vec_elms, 2>();
+    HVX_DATAPACK_TOP(src, bias, dst); // wgts,
+    hvx::nn::SuperTop<param_super,true, hvx::util::pooling_e::kAvg, hvx::util::layer_e::Depthwise>(src, wgts, bias, dst);
  }
 
-//auto
+
+//  auto
+//  TestHw(param_super::src_port* src, param_super::wgts_port* wgts, param_super::bias_port* bias, stream::port* dst) noexcept -> void {
+//      HVX_INTERFACE_STREAM_NO_CTRL_TLP(src, wgts, bias, dst);
+//      auto super_fifo = hvx::HwFifo<param_super::dst_vec, param_super::dst_dim::vec_elms, 2>(); 
+//     /* auto dst_fifo   = hvx::HwFifo<param_reorder_n::dst_vec, param_reorder_n::dst_dim::vec_elms, 2>();*/
+//      HVX_DATAPACK_TOP(src, bias, dst); // wgts,
+//      hvx::nn::SuperTop<param_super, true, hvx::util::pooling_e::kAvg, hvx::util::layer_e::Depthwise>(src, wgts, bias, super_fifo.data);
+//      hvx::convert::HwReorderTop<param_reorder_n, hvx::util::reorder_e::Negative>(super_fifo.data, dst);
+//     //  hvx::convert::HwReorderTop<param_reorder_n, hvx::util::reorder_e::Negative>(super_fifo.data, dst_fifo.data);
+//     //  hvx::HwHvxToStream<stream>(dst_fifo.data, *dst);
+//  }
+
+//auto  
 //TestHw(param_super::src_port* src, stream::port* dst) noexcept -> void {
 //
 //    // pool test
@@ -157,9 +156,9 @@ main() -> int {
 
     // Depth test
 
-     hvx::depthwise_eval<param_super, hvx::eval_param<true, 4, 4, 4, stream::port, stream::flags>> eval(0.75f, 0.25f);
+     hvx::depthwise_eval<param_super, hvx::eval_param<true, 4, 4, 4, param_super::dst_port, 0>> eval(0.75f, 0.25f);
      TestHw(eval.GetSrcHw(), eval.GetWgtsHw(), eval.GetBiasHw(), eval.GetDstHw());      
-     eval.Compute();
+    //  eval.Compute();
      return 0;
 
     // //pool test

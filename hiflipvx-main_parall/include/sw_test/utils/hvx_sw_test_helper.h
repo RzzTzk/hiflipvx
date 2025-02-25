@@ -231,23 +231,23 @@ ConvertDstHwToFloat(hvx::util::vector<dst_type_, dim_::vec_size>& src, float* ds
         }
     }
 }
-
-#if defined(HVX_SYNTHESIS_ACTIVE)
-/*!
- * @brief Convert to floating point from an integer data type
- */
-template<typename dst_type_, typename dst_dim_, int64_t dst_flags>
-auto
-ConvertDstHwToFloat(hvx::convert::hls_stream_port<hvx::util::vector<dst_type_, dst_dim_::vec_size>, dst_flags>& src,
-                    float* dst_hw_flt) noexcept -> void {
-    for (int64_t v = 0; v < dst_dim_::vec_elms; ++v) {
-        auto src_data = src.read();
-        for (int64_t p = 0; p < dst_dim_::vec_size; ++p) {
-            dst_hw_flt[v * dst_dim_::vec_size + p] = static_cast<float>(src_data.data.Get(p)); // NOLINT
-        }
-    }
-}
-#endif
+//xwq
+// #if defined(HVX_SYNTHESIS_ACTIVE)
+// /*!
+//  * @brief Convert to floating point from an integer data type
+//  */
+// template<typename dst_type_, typename dst_dim_, int64_t dst_flags>
+// auto
+// ConvertDstHwToFloat(hvx::convert::hls_stream_port<hvx::util::vector<dst_type_, dst_dim_::vec_size>, dst_flags>& src,
+//                     float* dst_hw_flt) noexcept -> void {
+//     for (int64_t v = 0; v < dst_dim_::vec_elms; ++v) {
+//         auto src_data = src.read();
+//         for (int64_t p = 0; p < dst_dim_::vec_size; ++p) {
+//             dst_hw_flt[v * dst_dim_::vec_size + p] = static_cast<float>(src_data.data.Get(p)); // NOLINT
+//         }
+//     }
+// }
+// #endif
 
 /******************************************************************************************************************************************/
 
