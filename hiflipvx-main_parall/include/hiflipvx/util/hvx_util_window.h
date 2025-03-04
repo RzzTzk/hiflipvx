@@ -334,7 +334,7 @@ WinDstVecSize() noexcept -> int64_t {
     static_assert(src_len_vec_size_ >= 1, "Vector size cannot be smaller than 1!");
     static_assert(str_len_ >= 1, "Stride cannot be smaller than 1!");
     return hvx::util::Max((src_len_vec_size_ + str_len_ - (int64_t)1), (int64_t)1) / std::max(str_len_, (int64_t)1);
-    //return src_len_vec_size_;
+    // return src_len_vec_size_;
 }
 
 /*!

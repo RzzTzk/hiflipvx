@@ -75,9 +75,9 @@ using param_super_re = hvx::nn::Super_Re_Param<
    hvx::dfixed<int16_t, 15>, // wgts_type / wgts_type_frac_bits
    hvx::dfixed<int16_t, 15>, // bias_type / bias_type_frac_bits
    hvx::vector_param<1, 1>,  // batch     / batch_vec_size
-   hvx::vector_param<4, 1>, // src_rows  / src_rows_vec_size
-   hvx::vector_param<4, 1>, // src_cols  / src_cols_vec_size
-   hvx::vector_param<4, 1>, // chnls     / chnls_vec_size
+   hvx::vector_param<32, 1>, // src_rows  / src_rows_vec_size
+   hvx::vector_param<32, 1>, // src_cols  / src_cols_vec_size
+   hvx::vector_param<32, 1>, // chnls     / chnls_vec_size
    hvx::vector_param<1, 1>,  // fms       / fms_vec_size
    hvx::vector_param<2, 2>,  // knl_rows  / knl_rows_vec_size
    hvx::vector_param<2, 2>,  // knl_cols  / knl_cols_vec_size
@@ -95,21 +95,21 @@ using param_super_re = hvx::nn::Super_Re_Param<
 
 
 
-using stream = hvx::stream_param<typename param_super_re::dst_type, typename param_super_re::dst_dim, hvx::axis_e::kEof>;
+// using stream = hvx::stream_param<typename param_super_re::dst_type, typename param_super_re::dst_dim, hvx::axis_e::kEof>;
  
 
 // HW accelerator
 
 
  auto
- TestHw(param_tran::src_port* src, stream::port* dst) noexcept -> void {
+ TestHw(param_super_re::src_port* src, param_super_re::dst_port* dst) noexcept -> void {
     HVX_INTERFACE_STREAM_NO_CTRL_TLP(src, dst);
-    auto transpose_fifo = hvx::HwFifo<param_tran::dst_vec, param_tran::dst_dim::vec_elms, 2>();
-    auto dst_fifo = hvx::HwFifo<param_super_re::dst_vec, param_super_re::dst_dim::vec_elms, 2>();
+    // auto transpose_fifo = hvx::HwFifo<param_tran::dst_vec, param_tran::dst_dim::vec_elms, 2>();
+    // auto dst_fifo = hvx::HwFifo<param_super_re::dst_vec, param_super_re::dst_dim::vec_elms, 2>();
     HVX_DATAPACK_TOP(src, dst); // wgts,
-    hvx::HwTranspose<param_tran>(src, transpose_fifo.data);
-    hvx::nn::SuperTop<param_super_re,true, hvx::util::pooling_e::kAvg, hvx::util::layer_e::Pool>(transpose_fifo.data, nullptr, nullptr, dst_fifo.data);
-    hvx::HwHvxToStream<stream>(dst_fifo.data, *dst);
+    // hvx::HwTranspose<param_tran>(src, transpose_fifo.data);
+    hvx::nn::SuperTop<param_super_re,true, hvx::util::pooling_e::kAvg, hvx::util::layer_e::Pool>(src, nullptr, nullptr, dst);
+    // hvx::HwHvxToStream<stream>(dst_fifo.data, *dst);
  }
 
 //  auto
@@ -151,8 +151,8 @@ main() -> int {
 
     // //pool test
 
-    hvx::pool_avg_eval<param_super_re, hvx::eval_param<true, 4, 4, 4, stream::port, stream::flags>> eval;
+    hvx::pool_avg_eval<param_super_re, hvx::eval_param<true, 4, 4, 4, param_super_re::dst_port, 0>> eval;
     TestHw(eval.GetSrcHw(), eval.GetDstHw());  
-    eval.Compute();
+    // eval.Compute();
     return 0;
 }

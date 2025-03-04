@@ -453,7 +453,8 @@ SuperTop(typename param_::src_port* src,
                                  param_::wgt_dst_chnl_vec_elms, param_::buffer_wgts>(wgt_src_chnl_v, wgt_dst_chnl_v, ptr_dst,
                                                                                      wgts_buffered_, cond_wgts, wgts, wgts_buf, wgts_data);
 
-        // std::cout << "    wgt_size:" << param_::knl_sel_cols << "\n";
+        // std::cout << "    dst_row_vec_size:" << param_::dst_row_vec_size << "\n";
+        // std::cout << "    dst_col_vec_size:" << param_::dst_col_vec_size << "\n";
         // read bias src vector (TODO: delete template parameters except param_)
         hvx::util::BiasUpdate<typename param_::bias_type, param_::dst_chnls_v::vec_size, param_::bias_vec_elms, param_::buffer_bias>(
             ptr_dst, bias_buffered_, cond_bias, bias, bias_buf, bias_data);
