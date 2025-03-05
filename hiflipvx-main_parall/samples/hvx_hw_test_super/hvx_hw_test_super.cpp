@@ -105,11 +105,11 @@ auto
 TestHw(param_super::src_port* src, param_super::dst_port* dst, int ctrl) noexcept -> void {
 
    // pool test
-    #pragma HLS INTERFACE m_axi port=src offset=slave bundle=gmem depth=32768
-    #pragma HLS INTERFACE m_axi port=dst offset=slave bundle=gmem depth=8192
-//    #pragma HLS INTERFACE s_axilite port=ctrl bundle=control
-	#pragma HLS INTERFACE ap_none port=ctrl
-
+    #pragma HLS INTERFACE m_axi port=src offset=slave bundle=gmem0 depth=32768
+    #pragma HLS INTERFACE m_axi port=dst offset=slave bundle=gmem1 depth=8192
+   #pragma HLS INTERFACE s_axilite port=ctrl bundle=control
+	// #pragma HLS INTERFACE ap_none port=ctrl    #pragma HLS INTERFACE s_axilite port=size bundle=control
+    #pragma HLS INTERFACE s_axilite port=return bundle=control
 //    #pragma HLS INTERFACE ap_ctrl_hs port=return
 //    #pragma HLS dependence variable=src inter false
 //    #pragma HLS dependence variable=dst inter false
@@ -118,27 +118,43 @@ TestHw(param_super::src_port* src, param_super::dst_port* dst, int ctrl) noexcep
     }
 }
 //// testbench
+// auto
+// main() -> int {
+
+//     // Conv test
+
+//      //hvx::conv_eval<param_super, hvx::eval_param<true, 4, 4, 4, stream::port, stream::flags>> eval(0.75f, 0.25f);
+//      //TestHw(eval.GetSrcHw(), eval.GetWgtsHw(), eval.GetBiasHw(), eval.GetDstHw());
+//      //eval.Compute();
+//      //return 0;
+
+
+//     // Depth test
+
+//     //  hvx::depthwise_eval<param_super, hvx::eval_param<true, 4, 4, 4, param_super::dst_port, 0>> eval(0.75f, 0.25f);
+//     //  TestHw(eval.GetSrcHw(), eval.GetWgtsHw(), eval.GetBiasHw(), eval.GetDstHw());
+//     //  eval.Compute();
+//     //  return 0;
+
+//     // //pool test
+// 	int ctrl = 1;
+//     hvx::pool_avg_eval<param_super, hvx::eval_param<true, 4, 4, 4, param_super::dst_port, 0>> eval;
+//     TestHw(eval.GetSrcHw(), eval.GetDstHw(), ctrl);
+//     // eval.Compute();
+//     return 0;
+// }
+
 auto
 main() -> int {
-
-    // Conv test
-
-     //hvx::conv_eval<param_super, hvx::eval_param<true, 4, 4, 4, stream::port, stream::flags>> eval(0.75f, 0.25f);
-     //TestHw(eval.GetSrcHw(), eval.GetWgtsHw(), eval.GetBiasHw(), eval.GetDstHw());
-     //eval.Compute();
-     //return 0;
-
-
-    // Depth test
-
-    //  hvx::depthwise_eval<param_super, hvx::eval_param<true, 4, 4, 4, param_super::dst_port, 0>> eval(0.75f, 0.25f);
-    //  TestHw(eval.GetSrcHw(), eval.GetWgtsHw(), eval.GetBiasHw(), eval.GetDstHw());
-    //  eval.Compute();
-    //  return 0;
 
     // //pool test
 	int ctrl = 1;
     hvx::pool_avg_eval<param_super, hvx::eval_param<true, 4, 4, 4, param_super::dst_port, 0>> eval;
+    param_super::src_port* src_hbm = (param_super::src_port*)malloc(32768 * sizeof(param_super::src_port));
+    param_super::dst_port* dst_hbm = (param_super::dst_port*)malloc(8192 * sizeof(param_super::dst_port));
+    for (int16_t i = 0; i < 32768; i++) {
+        src_hbm[i] = i;  //
+    }    
     TestHw(eval.GetSrcHw(), eval.GetDstHw(), ctrl);
     // eval.Compute();
     return 0;
