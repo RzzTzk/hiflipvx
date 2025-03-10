@@ -219,7 +219,7 @@ int main(int argc, char* argv[]) {
                                       sizeof(uint32_t) * dataSize, &outAddBufExt[i], &err));
         OCL_CHECK(err, buffer_output_mul[i] =
                            cl::Buffer(context, CL_MEM_WRITE_ONLY | CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR,
-                                      sizeof(uint32_t) * dataSize, &outMulBufExt[i], &err));
+                                      sizeof(uint32_t) * dataSize, &outMulBufExt[i], &err));  
     }
 
     // Copy input data to Device Global Memory

@@ -1,0 +1,23 @@
+{
+    "containers": [
+        {
+            "name": "krnl_TestHw", 
+            "meet_system_timing": "true", 
+            "accelerators": [
+                {
+                    "name": "krnl_TestHw", 
+                    "check_timing": "true", 
+                    "PipelineType": "none", 
+                    "check_latency": "false", 
+                    "check_warning": "false", 
+                    "loops": [
+                        {
+                            "name": "L_vops_vops1", 
+                            "PipelineII": "1"
+                        }
+                    ]
+                }
+            ]
+        } 
+    ]
+}
