@@ -116,6 +116,56 @@ struct array2d {
 };
 
 /******************************************************************************************************************************************/
+
+/*!
+ * @brief a simple array data type
+ */
+template<typename type_, int64_t bats_,int64_t cols_, int64_t rows_>
+struct array3d {
+    // stores the values
+#ifdef HVX_SYNTHESIS_ACTIVE
+    type_ data[bats_][rows_][cols_]; // NOLINT
+#else
+    type_* data = new type_[bats_ * cols_ * rows_];
+#endif
+    using data_type = type_;
+
+    /*!
+     * @brief gets an element (call by reference)
+     */
+    HVX_FORCE_INLINE constexpr auto Get(const int64_t bat, const int64_t col, const int64_t row) noexcept -> type_& {
+        HVX_INLINE_TOP();
+#if !defined(HVX_SYNTHESIS_ACTIVE)
+        assert(bat < bats_);
+        assert(col < cols_);
+        assert(row < rows_);
+#endif
+#ifdef HVX_SYNTHESIS_ACTIVE
+        return data[bat][row][col]; // NOLINT
+#else
+        return data[bat * rows_ * cols_ + row * cols_ + col];  // NOLINT
+#endif
+    }
+
+    /*!
+     * @brief stores an element
+     */
+    HVX_FORCE_INLINE constexpr auto Set(type_& value, const int64_t bat,const int64_t col, const int64_t row) noexcept -> void {
+        HVX_INLINE_TOP();
+#if !defined(HVX_SYNTHESIS_ACTIVE)
+        assert(bat < bats_);
+        assert(col < cols_);
+        assert(row < rows_);
+#endif
+#ifdef HVX_SYNTHESIS_ACTIVE
+        data[bat][row][col] = value; // NOLINT
+#else
+        data[bat * rows_ * cols_ + row * cols_ + col] = value; // NOLINT
+#endif
+    }
+};
+
+/******************************************************************************************************************************************/
 } // namespace util
 } // namespace hvx
 

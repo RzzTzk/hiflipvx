@@ -73,7 +73,7 @@ VPP_FLAGS += --save-temps
 
 # Kernel linker flags
 VPP_LDFLAGS_krnl_TestHw += --config ./krnl_TestHw.cfg
-EXECUTABLE = ./hbm_bandwidth
+EXECUTABLE = ./hbm_test
 EMCONFIG_DIR = $(TEMP_DIR)
 
 ############################## Setting Targets ##############################

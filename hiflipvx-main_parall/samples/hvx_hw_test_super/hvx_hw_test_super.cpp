@@ -140,7 +140,7 @@ TestHw(param_super::src_port* src, param_super::dst_port* dst, int ctrl) noexcep
  	int ctrl = 1;
      hvx::pool_avg_eval<param_super, hvx::eval_param<true, 4, 4, 4, param_super::dst_port, 0>> eval;
      TestHw(eval.GetSrcHw(), eval.GetDstHw(), ctrl);
-     // eval.Compute();
+     eval.Compute();
      return 0;
  }
 
