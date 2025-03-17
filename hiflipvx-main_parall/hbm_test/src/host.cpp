@@ -47,31 +47,22 @@ const int pc[MAX_HBM_PC_COUNT] = {
     PC_NAME(16), PC_NAME(17), PC_NAME(18), PC_NAME(19), PC_NAME(20), PC_NAME(21), PC_NAME(22), PC_NAME(23),
     PC_NAME(24), PC_NAME(25), PC_NAME(26), PC_NAME(27), PC_NAME(28), PC_NAME(29), PC_NAME(30), PC_NAME(31)};
 
-// // Function for verifying results
-// bool verify(std::vector<int, aligned_allocator<int> >& source_sw_add_results,
-//             std::vector<int, aligned_allocator<int> >& source_sw_mul_results,
-//             std::vector<int, aligned_allocator<int> >& source_hw_add_results,
-//             std::vector<int, aligned_allocator<int> >& source_hw_mul_results,
-//             unsigned int size) {
-//     bool check = true;
-//     for (size_t i = 0; i < size; i++) {
-//         if (source_hw_add_results[i] != source_sw_add_results[i]) {
-//             std::cout << "Error: Result mismatch in Addition Operation" << std::endl;
-//             std::cout << "i = " << i << " CPU result = " << source_sw_add_results[i]
-//                       << " Device result = " << source_hw_add_results[i] << std::endl;
-//             check = false;
-//             break;
-//         }
-//         if (source_hw_mul_results[i] != source_sw_mul_results[i]) {
-//             std::cout << "Error: Result mismatch in Multiplication Operation" << std::endl;
-//             std::cout << "i = " << i << " CPU result = " << source_sw_mul_results[i]
-//                       << " Device result = " << source_hw_mul_results[i] << std::endl;
-//             check = false;
-//             break;
-//         }
-//     }
-//     return check;
-// }
+// Function for verifying results
+bool verify(std::vector<int, aligned_allocator<int> >& source_sw_results,
+            std::vector<int, aligned_allocator<int> >& source_hw_results,
+            unsigned int size) {
+    bool check = true;
+    for (size_t i = 0; i < size; i++) {
+        if (source_hw_results[i] != source_sw_results[i]) {
+            std::cout << "Error: Result mismatch in Addition Operation" << std::endl;
+            std::cout << "i = " << i << " CPU result = " << source_sw_results[i]
+                      << " Device result = " << source_hw_results[i] << std::endl;
+            check = false;
+            break;
+        }
+    }
+    return check;
+}
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
@@ -79,7 +70,8 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    unsigned int dataSize = 32768; // taking maximum possible data size value for an HBM bank
+    unsigned int in_dataSize = 32768; // taking maximum possible data size value for an HBM bank
+    unsigned int out_dataSize = 8192;
     unsigned int num_times = 1;            // num_times specify, number of times a kernel
                                               // will execute the same operation. This is
                                               // needed
@@ -88,7 +80,8 @@ int main(int argc, char* argv[]) {
 
     // reducing the test data capacity to run faster in emulation mode
     if (xcl::is_emulation()) {
-        dataSize = 32768;
+        in_dataSize = 32768;
+        out_dataSize = 8192;
         num_times = 1;
     }
 
@@ -98,21 +91,53 @@ int main(int argc, char* argv[]) {
     std::string krnl_name = "krnl_TestHw";
     std::vector<cl::Kernel> krnls(NUM_KERNEL);
     cl::Context context;
-    std::vector<int, aligned_allocator<int> > src(dataSize);
-    std::vector<int, aligned_allocator<int> > src_sw_results(dataSize);
+    std::vector<int, aligned_allocator<int> > src(in_dataSize);
+    std::vector<int, aligned_allocator<int> > src_sw_results(out_dataSize);
 
     std::vector<int, aligned_allocator<int> > dst[NUM_KERNEL];
 
     for (int i = 0; i < NUM_KERNEL; i++) {
-        dst[i].resize(dataSize);
+        dst[i].resize(out_dataSize);
     }
 
     // Create the test data
     std::generate(src.begin(), src.end(), std::rand);
 
-    for (size_t i = 0; i < dataSize; i++) {
-        src_sw_results[i] = src[i];
-    }
+    // for (size_t i = 0; i < dataSize; i++) {
+    //     src_sw_results[i] = src[i];
+    // }
+    for (int64_t batch = 0; batch < 1; ++batch) {
+        for (int64_t chnl = 0; chnl < 32; ++chnl) {
+            for (int64_t dst_row = 0; dst_row < 16; ++dst_row) {
+                for (int64_t dst_col = 0; dst_col < 16; ++dst_col) {
+                
+
+                    // compute pooling
+                    for (int64_t knl_row = 0; knl_row < 2; ++knl_row) {
+                        for (int64_t knl_col = 0; knl_col < 2; ++knl_col) {
+
+                            // read input
+                            if ((ptr_row >= 0) && (ptr_row < 32) && (ptr_col >= 0) && (ptr_col < 32))
+                                const int64_t ptr_src = batch * 32 * 16 * 16 * 4 + chnl * 16 * 16 * 4 + dst_row * 16 * 4 + dst_col * 4 + knl_row * 2 + knl_col;
+                                const int64_t data = src[ptr_src];
+
+                            // update max or average pooling
+                            const int64_t result = result + data;
+                        }
+                    }
+
+                    // compute average pooling
+                    result = result / static_cast<float>(4);
+
+                    // write output
+                    if ((dst_row < 16) && (dst_col < 16))
+                        const int64_t ptr_dst = batch * 32 * 16 * 16 + chnl * 16 * 16 + dst_row * 16 + dst_col
+                        src_sw_results[ptr_dst] = result; // NOLINT
+                }
+            }
+        }
+    }    
+    
 
     // Initializing output vectors to zero
     for (size_t i = 0; i < NUM_KERNEL; i++) {
@@ -192,10 +217,10 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < NUM_KERNEL; i++) {
         OCL_CHECK(err,
                   buffer_src[i] = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR,
-                                                sizeof(uint32_t) * dataSize, &inBufExt1[i], &err));
+                                                sizeof(uint32_t) * in_dataSize, &inBufExt1[i], &err));
         OCL_CHECK(err, buffer_output[i] =
                            cl::Buffer(context, CL_MEM_WRITE_ONLY | CL_MEM_EXT_PTR_XILINX | CL_MEM_USE_HOST_PTR,
-                                      sizeof(uint32_t) * dataSize, &outBufExt[i], &err));
+                                      sizeof(uint32_t) * out_dataSize, &outBufExt[i], &err));
     }
 
     // Copy input data to Device Global Memory
@@ -213,9 +238,9 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < NUM_KERNEL; i++) {
         // Setting the k_vadd Arguments
         OCL_CHECK(err, err = krnls[i].setArg(0, buffer_src[i]));
-        OCL_CHECK(err, err = krnls[i].setArg(2, buffer_output[i]));
-        OCL_CHECK(err, err = krnls[i].setArg(4, dataSize));
-        OCL_CHECK(err, err = krnls[i].setArg(5, num_times));
+        OCL_CHECK(err, err = krnls[i].setArg(1, buffer_output[i]));
+        // OCL_CHECK(err, err = krnls[i].setArg(4, dataSize));
+        // OCL_CHECK(err, err = krnls[i].setArg(5, num_times));
 
         // Invoking the kernel
         OCL_CHECK(err, err = q.enqueueTask(krnls[i]));
@@ -237,13 +262,13 @@ int main(int argc, char* argv[]) {
 
     bool match = true;
 
-    // for (int i = 0; i < NUM_KERNEL; i++) {
-    //     match = verify(source_sw_add_results, source_sw_mul_results, source_hw_add_results[i], source_hw_mul_results[i],
-    //                    dataSize);
-    // }
+    for (int i = 0; i < NUM_KERNEL; i++) {
+        match = verify(source_sw_results, source_hw_results[i],
+                       out_dataSize);
+    }
 
     // Multiplying the actual data size by 4 because four buffers are being used.
-    result = 4 * (float)dataSize * num_times * sizeof(uint32_t);
+    result = 2 * (float)dataSize * num_times * sizeof(uint32_t);
     result /= 1000;               // to KB
     result /= 1000;               // to MB
     result /= 1000;               // to GB
