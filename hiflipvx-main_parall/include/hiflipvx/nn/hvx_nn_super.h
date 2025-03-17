@@ -167,14 +167,14 @@ struct SuperParam {
     static constexpr auto exec_type      = exec_type_;
 
     // latency
-    static constexpr auto lat_batch = batch_vec_elms;  
+    static constexpr auto lat_bats = batch_vec_elms;  
     static constexpr auto ohd_rows  = (pad_rows_up + pad_rows_down) / src_row_vec_size;
     static constexpr auto ohd_cols  = (pad_cols_left + pad_cols_right) / src_col_vec_size;
     static constexpr auto lat_rows  = src_row_vec_elms + ohd_rows;
     static constexpr auto lat_cols  = src_col_vec_elms + ohd_cols;
     static constexpr auto lat_chnls = chnl_vec_elms;
     static constexpr auto lat_fms = fm_vec_elms;
-    static constexpr auto lat     = lat_batch * lat_rows * lat_cols * lat_chnls * lat_fms;
+    static constexpr auto lat     = lat_bats * lat_rows * lat_cols * lat_chnls * lat_fms;
 
     // buffer parameters
     static constexpr auto buf_bats = batch_vec_size;
@@ -372,11 +372,11 @@ SuperTop(typename param_::src_port* src,
     static bool wgts_buffered_ = false, bias_buffered_ = false;
 
     // buffers needed src elements for window to not read same element twice from global memory [dont initialize]
-    static hvx::util::array3d<typename param_::src_vec, param_::batch_vec_size, param_::row_buf_elms, param_::row_buf_num> row_buf;
-    static hvx::util::array2d<typename param_::src_vec, param_::batch_vec_size, param_::win_buf_elms, param_::win_buf_num> win_buf;
-    static hvx::util::array2d<typename param_::src_vec, param_::batch_vec_size, param_::src_buf_elms, param_::src_buf_num> src_buf;
-    static hvx::util::array2d<typename param_::chnl_vec, param_::batch_vec_size, param_::win_elms> win;
-    static hvx::util::array1d<typename param_::chnl_vec, param_::batch_vec_size, param_::win_dil_elms> win_dil;
+    static hvx::util::array2d<typename param_::src_vec, param_::row_buf_elms, param_::row_buf_num> row_buf;
+    static hvx::util::array2d<typename param_::src_vec, param_::win_buf_elms, param_::win_buf_num> win_buf;
+    static hvx::util::array2d<typename param_::src_vec, param_::src_buf_elms, param_::src_buf_num> src_buf;
+    static hvx::util::array1d<typename param_::chnl_vec, param_::win_elms> win;
+    static hvx::util::array1d<typename param_::chnl_vec, param_::win_dil_elms> win_dil;
 
     // buffers the global sum for one dst vector [dont initialize]
     static hvx::util::array1d<typename param_::comp_vec, param_::sum_global_elms> sum_global;
@@ -392,7 +392,7 @@ SuperTop(typename param_::src_port* src,
 
     // iterates through the tensor vector by vector
     int64_t ptr_src = 0, ptr_dst = 0;
-    for (int64_t sample = 0; sample < param_::batch; ++sample) {
+    for (int64_t sample = 0; sample < param_::lat_bats; ++sample) {
         for (int64_t ptr_pix = 0; ptr_pix < param_::lat_cols * param_::lat_rows; ++ptr_pix) {
             for (int64_t ptr_wgt = 0; ptr_wgt < param_::lat_chnls * param_::lat_fms; ++ptr_wgt) {
                 HVX_PIPELINE_ON(1, frp);

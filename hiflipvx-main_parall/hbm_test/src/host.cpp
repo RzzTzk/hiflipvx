@@ -181,7 +181,7 @@ int main(int argc, char* argv[]) {
         inBufExt1[i].param = 0;
         inBufExt1[i].flags = pc[i * 2];
 
-        outBufExt[i].obj = dst.data();
+        outBufExt[i].obj = dst[i].data();
         outBufExt[i].param = 0;
         outBufExt[i].flags = pc[(i * 2) + 1];
     }
