@@ -16,9 +16,9 @@ using param_super = hvx::nn::SuperParam<
     hvx::dfixed<int16_t, 15>,  // wgts_type / wgts_type_frac_bits
     hvx::dfixed<int16_t, 15>,  // bias_type / bias_type_frac_bits
     hvx::vector_param<1, 1>,   // batch     / batch_vec_size
-    hvx::vector_param<32, 2>,  // src_rows  / src_rows_vec_size
-    hvx::vector_param<32, 2>,  // src_cols  / src_cols_vec_size
-    hvx::vector_param<32, 2>,  // chnls     / chnls_vec_size
+    hvx::vector_param<8, 1>,  // src_rows  / src_rows_vec_size
+    hvx::vector_param<8, 1>,  // src_cols  / src_cols_vec_size
+    hvx::vector_param<8, 1>,  // chnls     / chnls_vec_size
     hvx::vector_param<1, 1>,  // fms       / fms_vec_size
     hvx::vector_param<2, 2>,   // knl_rows  / knl_rows_vec_size
     hvx::vector_param<2, 2>,   // knl_cols  / knl_cols_vec_size
@@ -35,7 +35,7 @@ using param_super = hvx::nn::SuperParam<
     hvx::util::pooling_e::kAvg >;
 
 auto
-krnl_TestHw(param_super::src_port* src, param_super::dst_port* dst) noexcept -> void {
+krnl_TestHw(param_super::src_port* src1, param_super::src2_port* src2, param_super::dst_port* dst1, param_super::dst2_port* dst2) noexcept -> void {
 
    // pool test
     // #pragma HLS INTERFACE m_axi port=src offset=slave bundle=gmem0 depth=32768
@@ -45,5 +45,5 @@ krnl_TestHw(param_super::src_port* src, param_super::dst_port* dst) noexcept -> 
     #pragma HLS INTERFACE s_axilite port=src
     #pragma HLS INTERFACE s_axilite port=dst
     #pragma HLS INTERFACE s_axilite port=return 
-    hvx::nn::SuperTop<param_super, true, hvx::util::pooling_e::kAvg, hvx::util::layer_e::Pool>(src,  nullptr, nullptr, dst);
+    hvx::nn::SuperTop<param_super, true, hvx::util::pooling_e::kAvg, hvx::util::layer_e::Pool>(src1, src2, nullptr, nullptr, dst1, dst2);
 }

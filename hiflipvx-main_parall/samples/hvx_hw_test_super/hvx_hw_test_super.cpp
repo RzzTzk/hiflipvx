@@ -102,20 +102,16 @@ using param_super = hvx::nn::SuperParam<
 
 
 auto
-TestHw(param_super::src_port* src, param_super::dst_port* dst, int ctrl) noexcept -> void {
+TestHw(param_super::src_port* src1, param_super::src2_port* src2, param_super::dst_port* dst1, param_super::dst2_port* dst2) noexcept -> void {
 
    // pool test
-    #pragma HLS INTERFACE m_axi port=src offset=slave bundle=gmem depth=32768
-    #pragma HLS INTERFACE m_axi port=dst offset=slave bundle=gmem depth=8192
-   #pragma HLS INTERFACE s_axilite port=ctrl bundle=control
-	// #pragma HLS INTERFACE ap_none port=ctrl    #pragma HLS INTERFACE s_axilite port=size bundle=control
-    #pragma HLS INTERFACE s_axilite port=return bundle=control
+    // #pragma HLS INTERFACE m_axi port=src offset=slave bundle=gmem depth=32768
+    // #pragma HLS INTERFACE m_axi port=dst offset=slave bundle=gmem depth=8192
+    // #pragma HLS INTERFACE s_axilite port=return bundle=control
 //    #pragma HLS INTERFACE ap_ctrl_hs port=return
 //    #pragma HLS dependence variable=src inter false
 //    #pragma HLS dependence variable=dst inter false
-    for (int i = 0; i < ctrl ; i++){
-        hvx::nn::SuperTop<param_super, true, hvx::util::pooling_e::kAvg, hvx::util::layer_e::Pool>(src,  nullptr, nullptr, dst);
-    }
+    hvx::nn::SuperTop<param_super, true, hvx::util::pooling_e::kAvg, hvx::util::layer_e::Pool>(src1, src2, nullptr, nullptr, dst1, dst2);
 }
 //// testbench
  auto
@@ -137,9 +133,8 @@ TestHw(param_super::src_port* src, param_super::dst_port* dst, int ctrl) noexcep
      //  return 0;
 
      // //pool test
- 	int ctrl = 1;
      hvx::pool_avg_eval<param_super, hvx::eval_param<true, 4, 4, 4, param_super::dst_port, 0>> eval;
-     TestHw(eval.GetSrcHw(), eval.GetDstHw(), ctrl);
+     TestHw(eval.GetSrcHw(), eval.GetSrcHw(), eval.GetDstHw(), eval.GetDstHw());
      eval.Compute();
      return 0;
  }

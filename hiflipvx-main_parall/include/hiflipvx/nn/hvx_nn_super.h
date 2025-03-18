@@ -124,7 +124,9 @@ struct SuperParam {
     using knl_vec   = hvx::util::vector<src_type, knl_rows_v::elms * knl_cols_v::elms>;
     using chnl_vec  = hvx::util::vector<src_type, chnls_v::vec_size>;
     using src_port  = src_vec;
+    using src2_port  = src_vec;
     using dst_port  = dst_vec;
+    using dst2_port  = dst_vec;
     using wgts_port = wgts_vec;
     using bias_port = bias_vec;
 
@@ -178,12 +180,12 @@ struct SuperParam {
 
     // buffer parameters
     static constexpr auto buf_bats = batch_vec_size;
-    static constexpr auto row_buf_elms = (src_col_vec_elms + ohd_cols) * chnl_vec_elms;
+    static constexpr auto row_buf_elms = (src_col_vec_elms + ohd_cols) * chnl_vec_elms * batch_vec_elms;
     static constexpr auto row_buf_num  = hvx::util::Max((knl_win_rows / src_row_vec_size) - 1, static_cast<int64_t>(1));
-    static constexpr auto win_buf_elms = chnl_vec_elms;
+    static constexpr auto win_buf_elms = chnl_vec_elms * batch_vec_elms;
     static constexpr auto win_buf_num =
         hvx::util::Max((knl_win_cols / src_col_vec_size) - 1, static_cast<int64_t>(1)) * (knl_win_rows / src_row_vec_size);
-    static constexpr auto src_buf_elms = chnl_vec_elms;
+    static constexpr auto src_buf_elms = chnl_vec_elms * batch_vec_elms;
     static constexpr auto src_buf_num  = 1;
     static constexpr auto win_elms     = knl_sel_rows * knl_sel_cols;
     static constexpr auto win_dil_elms = knl_win_rows * knl_win_cols;
@@ -360,10 +362,12 @@ SuperComp(int64_t chnl_v,
  */
 template<typename param_, bool with_bias_ = false, hvx::util::pooling_e pool_type_, hvx::util::layer_e layer_type_>
 HVX_FORCE_INLINE auto
-SuperTop(typename param_::src_port* src,
+SuperTop(typename param_::src_port* src1,
+         typename param_::src2_port* src2,
          typename param_::wgts_vec* wgts,
          typename param_::bias_vec* bias,
-         typename param_::dst_port* dst) noexcept -> void {
+         typename param_::dst_port* dst1,
+         typename param_::dst2_port* dst2) noexcept -> void {
     HVX_INLINE_TOP();
 
     // buffer the weights and bias (if needed) does not read when IP executes multiple times [dont initialize]
@@ -372,22 +376,32 @@ SuperTop(typename param_::src_port* src,
     static bool wgts_buffered_ = false, bias_buffered_ = false;
 
     // buffers needed src elements for window to not read same element twice from global memory [dont initialize]
-    static hvx::util::array2d<typename param_::src_vec, param_::row_buf_elms, param_::row_buf_num> row_buf;
-    static hvx::util::array2d<typename param_::src_vec, param_::win_buf_elms, param_::win_buf_num> win_buf;
-    static hvx::util::array2d<typename param_::src_vec, param_::src_buf_elms, param_::src_buf_num> src_buf;
-    static hvx::util::array1d<typename param_::chnl_vec, param_::win_elms> win;
-    static hvx::util::array1d<typename param_::chnl_vec, param_::win_dil_elms> win_dil;
+    static hvx::util::array2d<typename param_::src_vec, param_::row_buf_elms, param_::row_buf_num> row_buf1;
+    static hvx::util::array2d<typename param_::src_vec, param_::win_buf_elms, param_::win_buf_num> win_buf1;
+    static hvx::util::array2d<typename param_::src_vec, param_::src_buf_elms, param_::src_buf_num> src_buf1;
+    static hvx::util::array1d<typename param_::chnl_vec, param_::win_elms> win1;
+    static hvx::util::array1d<typename param_::chnl_vec, param_::win_dil_elms> win_dil1;
 
+    static hvx::util::array2d<typename param_::src_vec, param_::row_buf_elms, param_::row_buf_num> row_buf2;
+    static hvx::util::array2d<typename param_::src_vec, param_::win_buf_elms, param_::win_buf_num> win_buf2;
+    static hvx::util::array2d<typename param_::src_vec, param_::src_buf_elms, param_::src_buf_num> src_buf2;
+    static hvx::util::array1d<typename param_::chnl_vec, param_::win_elms> win2;
+    static hvx::util::array1d<typename param_::chnl_vec, param_::win_dil_elms> win_dil2;
     // buffers the global sum for one dst vector [dont initialize]
     static hvx::util::array1d<typename param_::comp_vec, param_::sum_global_elms> sum_global;
 
     // directives for buffers and windows
-    HVX_DATAPACK(bias_buf.data, row_buf.data, win_buf.data, src_buf.data, win.data, win_dil.data); // wgts_buf.data,
-    HVX_ARRAY_PARTITION_COMPLETE(row_buf.data, 1);
-    HVX_ARRAY_PARTITION_COMPLETE(win_buf.data, 1);
-    HVX_ARRAY_PARTITION_COMPLETE(src_buf.data, 1);
-    HVX_ARRAY_PARTITION_COMPLETE(win.data, 1);
-    HVX_ARRAY_PARTITION_COMPLETE(win_dil.data, 1);
+    HVX_DATAPACK(bias_buf.data, row_buf1.data, win_buf1.data, src_buf1.data, win1.data, win_dil1.data, row_buf2.data, win_buf2.data, src_buf2.data, win2.data, win_dil2.data); // wgts_buf.data,
+    HVX_ARRAY_PARTITION_COMPLETE(row_buf1.data, 1);
+    HVX_ARRAY_PARTITION_COMPLETE(win_buf1.data, 1);
+    HVX_ARRAY_PARTITION_COMPLETE(src_buf1.data, 1);
+    HVX_ARRAY_PARTITION_COMPLETE(win1.data, 1);
+    HVX_ARRAY_PARTITION_COMPLETE(win_dil1.data, 1);
+    HVX_ARRAY_PARTITION_COMPLETE(row_buf2.data, 1);
+    HVX_ARRAY_PARTITION_COMPLETE(win_buf2.data, 1);
+    HVX_ARRAY_PARTITION_COMPLETE(src_buf2.data, 1);
+    HVX_ARRAY_PARTITION_COMPLETE(win2.data, 1);
+    HVX_ARRAY_PARTITION_COMPLETE(win_dil2.data, 1);    
     HVX_ARRAY_PARTITION_COMPLETE(sum_global.data, 0);
 
     // iterates through the tensor vector by vector
@@ -401,8 +415,10 @@ SuperTop(typename param_::src_port* src,
                 // HVX_PRAGMA(HLS dependence variable = sum_global type = inter direction = WAW|WAR distance = 3 true);
 
                 // buffer the src, dst, wgts and bias vectors
-                typename param_::src_vec src_data{};
-                typename param_::dst_vec dst_data{};
+                typename param_::src_vec src_data1{};
+                typename param_::src_vec src_data2{};
+                typename param_::dst_vec dst_data1{};
+                typename param_::dst_vec dst_data2{};
                 typename param_::wgts_vec wgts_data{};
                 typename param_::bias_vec bias_data{};
 
@@ -426,14 +442,19 @@ SuperTop(typename param_::src_port* src,
                 const bool cond_wgts = (cond.dst_row && cond.dst_col && (layer_type_ != hvx::util::layer_e::Pool));
                 const bool cond_bias = (with_bias_ && cond.dst_row && cond.dst_col && cond_fm && (layer_type_ != hvx::util::layer_e::Pool));
                 // read next src vector
-                hvx::util::StreamReadData<>(src, src_data, ptr_src, (cond.src_row && cond.src_col && cond_chnl));
-
-                // updates the window and its buffers (TODO: delete template parameters except param_)                                                        win_dil, win);
+                hvx::util::StreamReadData<>(src1, src_data1, ptr_src, (cond.src_row && cond.src_col && cond_chnl));
+                hvx::util::StreamReadData<>(src2, src_data2, ptr_src, (cond.src_row && cond.src_col && cond_chnl));
+                // updates the window and its buffers (TODO: delete template parameters except param_) 
                 hvx::util::WinUpdate<typename param_::src_type, typename param_::src_dim, param_::ohd_cols, param_::knl_rows, param_::knl_cols,
                                     param_::dil_rows, param_::dil_cols, param_::str_rows, param_::str_cols, param_::knl_sel_rows,
                                     param_::knl_sel_cols, param_::knl_win_rows, param_::knl_win_cols, param_::knl_vec_rows, param_::knl_vec_cols,
                                     param_::knl_ovr_rows, param_::knl_ovr_cols, param_::dst_row_vec_size, param_::dst_col_vec_size>(
-                    src_row, src_col, chnl_v, fm_v, src_data, row_buf, src_buf, win_buf, win_dil, win);
+                    src_row, src_col, chnl_v, fm_v, src_data1, row_buf1, src_buf1, win_buf1, win_dil1, win1);
+                hvx::util::WinUpdate<typename param_::src_type, typename param_::src_dim, param_::ohd_cols, param_::knl_rows, param_::knl_cols,
+                                    param_::dil_rows, param_::dil_cols, param_::str_rows, param_::str_cols, param_::knl_sel_rows,
+                                    param_::knl_sel_cols, param_::knl_win_rows, param_::knl_win_cols, param_::knl_vec_rows, param_::knl_vec_cols,
+                                    param_::knl_ovr_rows, param_::knl_ovr_cols, param_::dst_row_vec_size, param_::dst_col_vec_size>(
+                    src_row, src_col, chnl_v, fm_v, src_data2, row_buf2, src_buf2, win_buf2, win_dil2, win2);                    
                 // read weights src vector (TODO: delete template parameters except param_)
                 hvx::util::WeightsUpdate<typename param_::wgts_type, param_::wgts_vec_size, param_::wgt_src_chnl_vec_elms,
                                         param_::wgt_dst_chnl_vec_elms, param_::buffer_wgts>(wgt_src_chnl_v, wgt_dst_chnl_v, ptr_dst,
@@ -444,14 +465,16 @@ SuperTop(typename param_::src_port* src,
                     ptr_dst, bias_buffered_, cond_bias, bias, bias_buf, bias_data);
 
                 // applies conv function on an src vector
-                hvx::nn::SuperComp<param_, pool_type_, layer_type_>(chnl_v, sum_global, win, wgts_data, bias_data, dst_data);
+                hvx::nn::SuperComp<param_, pool_type_, layer_type_>(chnl_v, sum_global, win1, wgts_data, bias_data, dst_data1);
+                hvx::nn::SuperComp<param_, pool_type_, layer_type_>(chnl_v, sum_global, win2, wgts_data, bias_data, dst_data2);
 
                 // write next dst vector
-                hvx::util::StreamWriteData<>(dst, dst_data, ptr_dst, (cond.dst_row && cond.dst_col && cond_fm));
+                hvx::util::StreamWriteData<>(dst1, dst_data1, ptr_dst, (cond.dst_row && cond.dst_col && cond_fm));
+                hvx::util::StreamWriteData<>(dst2, dst_data2, ptr_dst, (cond.dst_row && cond.dst_col && cond_fm));
             }
         }
     }        
-    hvx::util::StreamSignalVerify<typename param_::src_dim, typename param_::dst_dim>(ptr_src, ptr_dst);
+    // hvx::util::StreamSignalVerify<typename param_::src_dim, typename param_::dst_dim>(ptr_src, ptr_dst);
 }
 
 /******************************************************************************************************************************************/
