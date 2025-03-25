@@ -40,10 +40,14 @@ krnl_TestHw(param_super::src_port* src1, param_super::src2_port* src2, param_sup
    // pool test
     // #pragma HLS INTERFACE m_axi port=src offset=slave bundle=gmem0 depth=32768
     // #pragma HLS INTERFACE m_axi port=dst offset=slave bundle=gmem1 depth=8192
-    #pragma HLS INTERFACE m_axi port=src offset=slave bundle=gmem0
-    #pragma HLS INTERFACE m_axi port=dst offset=slave bundle=gmem1
-    #pragma HLS INTERFACE s_axilite port=src
-    #pragma HLS INTERFACE s_axilite port=dst
+    #pragma HLS INTERFACE m_axi port=src1 offset=slave bundle=gmem0
+    #pragma HLS INTERFACE m_axi port=src2 offset=slave bundle=gmem1   
+    #pragma HLS INTERFACE m_axi port=dst1 offset=slave bundle=gmem2
+    #pragma HLS INTERFACE m_axi port=dst2 offset=slave bundle=gmem3    
+    #pragma HLS INTERFACE s_axilite port=src1
+    #pragma HLS INTERFACE s_axilite port=src2
+    #pragma HLS INTERFACE s_axilite port=dst1
+    #pragma HLS INTERFACE s_axilite port=dst2
     #pragma HLS INTERFACE s_axilite port=return 
     hvx::nn::SuperTop<param_super, true, hvx::util::pooling_e::kAvg, hvx::util::layer_e::Pool>(src1, src2, nullptr, nullptr, dst1, dst2);
 }

@@ -39,9 +39,9 @@ using param_super = hvx::nn::SuperParam<
     hvx::dfixed<int16_t, 15>,  // wgts_type / wgts_type_frac_bits
     hvx::dfixed<int16_t, 15>,  // bias_type / bias_type_frac_bits
     hvx::vector_param<1, 1>,   // batch     / batch_vec_size
-    hvx::vector_param<32, 2>,  // src_rows  / src_rows_vec_size
-    hvx::vector_param<32, 2>,  // src_cols  / src_cols_vec_size
-    hvx::vector_param<32, 2>,  // chnls     / chnls_vec_size
+    hvx::vector_param<32, 1>,  // src_rows  / src_rows_vec_size
+    hvx::vector_param<32, 1>,  // src_cols  / src_cols_vec_size
+    hvx::vector_param<32, 1>,  // chnls     / chnls_vec_size
     hvx::vector_param<1, 1>,  // fms       / fms_vec_size
     hvx::vector_param<2, 2>,   // knl_rows  / knl_rows_vec_size
     hvx::vector_param<2, 2>,   // knl_cols  / knl_cols_vec_size
@@ -139,18 +139,3 @@ TestHw(param_super::src_port* src1, param_super::src2_port* src2, param_super::d
      return 0;
  }
 
-//auto
-//main() -> int {
-//
-//    // //pool test
-//	int ctrl = 1;
-//    hvx::pool_avg_eval<param_super, hvx::eval_param<true, 4, 4, 4, param_super::dst_port, 0>> eval;
-//    param_super::src_port* src_hbm = (param_super::src_port*)malloc(32768 * sizeof(param_super::src_port));
-//    param_super::dst_port* dst_hbm = (param_super::dst_port*)malloc(8192 * sizeof(param_super::dst_port));
-//    for (int16_t i = 0; i < 32768; i++) {
-//        src_hbm[i] = i;  //
-//    }
-//    TestHw(eval.GetSrcHw(), eval.GetDstHw(), ctrl);
-//    // eval.Compute();
-//    return 0;
-//}

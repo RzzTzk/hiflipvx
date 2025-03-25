@@ -58,7 +58,6 @@ bool verify(std::vector<int, aligned_allocator<int> >& source_sw_results,
             std::cout << "Error: Result mismatch in Addition Operation" << std::endl;
             std::cout << "i = " << i << " CPU result = " << source_sw_results[i]
                       << " Device result = " << source_hw_results1[i] << std::endl;
-            std::
             check = false;
             break;
         }
@@ -66,7 +65,6 @@ bool verify(std::vector<int, aligned_allocator<int> >& source_sw_results,
             std::cout << "Error: Result mismatch in Addition Operation" << std::endl;
             std::cout << "i = " << i << " CPU result = " << source_sw_results[i]
                       << " Device result = " << source_hw_results2[i] << std::endl;
-            std::
             check = false;
             break;
         }        
@@ -141,9 +139,8 @@ int main(int argc, char* argv[]) {
                     result = result / static_cast<float>(4);
 
                     // write output
-                    if ((dst_row < 4) && (dst_col < 4))
-                        int64_t ptr_dst = batch * 8 * 4 * 4 + chnl * 4 * 4 + dst_row * 4 + dst_col;
-                        src_sw_results[ptr_dst] = result; // NOLINT
+                    int64_t ptr_dst = batch * 8 * 4 * 4 + chnl * 4 * 4 + dst_row * 4 + dst_col;
+                    src_sw_results[ptr_dst] = result; // NOLINT
                 }
             }
         }
@@ -216,11 +213,11 @@ int main(int argc, char* argv[]) {
     // cl_mem_ext_ptr_t
     // and provide the PCs
     for (int i = 0; i < NUM_KERNEL; i++) {
-        inBufExt1[i].obj = src.data();
+        inBufExt1[i].obj = src1.data();
         inBufExt1[i].param = 0;
         inBufExt1[i].flags = pc[i * 4];
 
-        inBufExt2[i].obj = src.data();
+        inBufExt2[i].obj = src1.data();
         inBufExt2[i].param = 0;
         inBufExt2[i].flags = pc[i * 4 + 1];        
 
@@ -282,7 +279,7 @@ int main(int argc, char* argv[]) {
 
     // Copy Result from Device Global Memory to Host Local Memory
     for (int i = 0; i < NUM_KERNEL; i++) {
-        OCL_CHECK(err, err = q.enqueueMigrateMemObjects({buffer_output1[i], buffer_output21[i]},
+        OCL_CHECK(err, err = q.enqueueMigrateMemObjects({buffer_output1[i], buffer_output2[i]},
                                                         CL_MIGRATE_MEM_OBJECT_HOST));
     }
     q.finish();
